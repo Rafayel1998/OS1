@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #pragma region ErrorHandling
+//problem 1.1
 void PrintLastErrorText()
 {
 
@@ -23,6 +24,7 @@ void PrintLastErrorText()
 #pragma region Files
 const int N = 100;
 
+//problem 1.3
 bool FileCopy(TCHAR* file1, TCHAR* file2)
 {
     HANDLE h1 = CreateFile(file1,
@@ -80,6 +82,7 @@ bool FileCopy(TCHAR* file1, TCHAR* file2)
     return true;
 }
 
+//problem 1.14
 bool ChangeFileTime(TCHAR* file)
 {
     HANDLE h = CreateFile(file,
@@ -114,6 +117,90 @@ bool ChangeFileTime(TCHAR* file)
         return false;
     }
     CloseHandle(h);
+    return true;
+}
+
+//problem 1.10
+bool CopyHandles(HANDLE h1, HANDLE h2)
+{
+    DWORD read = -1, write;
+    TCHAR buffer[N];
+    while(ReadFile(h1, buffer, N * sizeof(TCHAR), &read, NULL) && read)
+    {
+        if(!WriteFile(h2, buffer, read, &write, NULL) || read != write)
+        {
+            PrintLastErrorText();
+            return false;
+        }
+    }
+    if(read != 0)
+    {
+        PrintLastErrorText();
+        return false;
+    }
+    return true;
+}
+
+//problem 1.7
+bool FromFileToOutput(TCHAR* FileName)
+{
+    HANDLE h1 = CreateFile(FileName, 
+                           GENERIC_READ, 
+                           0, NULL, 
+                           OPEN_EXISTING, 
+                           0, NULL);
+    if(INVALID_HANDLE_VALUE == h1)
+    {
+        PrintLastErrorText();
+        return false;
+    }
+    HANDLE h2 = GetStdHandle(STD_OUTPUT_HANDLE);
+    if(INVALID_HANDLE_VALUE == h2)
+    {
+        PrintLastErrorText();
+        CloseHandle(h1);
+        return false;
+    }
+    if(!CopyHandles(h1, h2))
+    {
+        PrintLastErrorText();
+        CloseHandle(h1);
+    }
+    CloseHandle(h1);
+    return true;
+}
+
+bool FromFileToConsole(TCHAR* FileName)
+{
+    HANDLE h1 = CreateFile(FileName, 
+                           GENERIC_READ, 
+                           0, NULL, 
+                           OPEN_EXISTING, 
+                           0, NULL);
+    if(INVALID_HANDLE_VALUE == h1)
+    {
+        PrintLastErrorText();
+        return false;
+    }
+    HANDLE h2 = CreateFile(_T("CONOUT$"), 
+                           GENERIC_WRITE, 
+                           0, NULL, 
+                           OPEN_EXISTING,
+                           0, NULL);
+    if(INVALID_HANDLE_VALUE == h2)
+    {
+        PrintLastErrorText();
+        CloseHandle(h1);
+        return false;
+    }
+    if(!CopyHandles(h1, h2))
+    {
+        PrintLastErrorText();
+        CloseHandle(h1);
+        CloseHandle(h2);
+    }
+    CloseHandle(h1);
+    CloseHandle(h2);
     return true;
 }
 #pragma endregion

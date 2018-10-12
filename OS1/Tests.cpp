@@ -17,6 +17,7 @@ void TestPrintLastErrorText()
 #pragma region Command line arguments, enviroment variables and current directory
 const unsigned int N = 50;
 
+//problem 1.2
 void GetArgsAndVars(int argc, TCHAR* argv[], TCHAR** envp)
 {
     if(argc > 0)
@@ -39,6 +40,7 @@ void ErrorCheck(int ErrNo)
         _tprintf(_T("%s\n"), _T("Succes"));
 }
 
+//problem 1.15
 void SetVars()
 {
     TCHAR buf[N];
@@ -51,12 +53,11 @@ void SetVars()
     ErrorCheck(val);
 }
 
+//problem 1.2
 void GetCurrDir()
 {
     TCHAR buf[N];
-    DWORD val = GetEnvironmentVariable(_T("PAT"), buf, N);
-
-    val = GetCurrentDirectory(N, buf);
+    DWORD val = GetCurrentDirectory(N, buf);
     ErrorCheck(val);
     val = GetCurrentDirectory(N, buf);
     ErrorCheck(val);
@@ -79,8 +80,9 @@ void TestChangeFileTime(int argc, TCHAR* argv[])
         if(ChangeFileTime(argv[1]))
         {
             HANDLE h = CreateFile(argv[1],
-                                  GENERIC_READ, 0,
-                                  NULL, OPEN_EXISTING,
+                                  GENERIC_READ, 
+                                  0, NULL,
+                                  OPEN_EXISTING,
                                   0, NULL);
             if(INVALID_HANDLE_VALUE == h)
             {
@@ -99,6 +101,42 @@ void TestChangeFileTime(int argc, TCHAR* argv[])
                      (st.wHour + 4)%24, st.wMinute, st.wSecond, st.wMilliseconds);
         }
     }
+    else
+        _tprintf(_T("%s"), PTCHAR(_T("Insufficient command line arguments.\n")));
+}
+
+void TestFromFileToOutput(int argc, TCHAR* argv[])
+{
+    if(argc > 4)
+    {
+        FromFileToOutput(argv[4]);
+        if(argc > 5)
+        {
+            HANDLE h = CreateFile(argv[5],
+                                  GENERIC_WRITE, 
+                                  0, NULL,
+                                  OPEN_ALWAYS,
+                                  0, NULL);
+            if(INVALID_HANDLE_VALUE == h)
+                PrintLastErrorText();
+            else
+            {
+                _tprintf(_T("\n"));
+                SetStdHandle(STD_OUTPUT_HANDLE, h);
+                FromFileToOutput(argv[4]);
+            }
+        }
+        else
+            _tprintf(_T("%s"), PTCHAR(_T("Insufficient command line arguments.\n")));
+    }
+    else
+        _tprintf(_T("%s"), PTCHAR(_T("Insufficient command line arguments.\n")));
+}
+
+void TestFromFileToConsole(int argc, TCHAR* argv[])
+{
+    if(argc > 3)
+        FromFileToConsole(argv[3]);
     else
         _tprintf(_T("%s"), PTCHAR(_T("Insufficient command line arguments.\n")));
 }
