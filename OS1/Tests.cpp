@@ -5,9 +5,11 @@
 void TestPrintLastErrorText()
 {
     PrintLastErrorText();
-    SetLastError(2);
+    SetLastError(56);
     PrintLastErrorText();
     SetLastError(36);
+    PrintLastErrorText();
+    SetLastError(39);
     PrintLastErrorText();
 }
 #pragma endregion
@@ -58,5 +60,46 @@ void GetCurrDir()
     ErrorCheck(val);
     val = GetCurrentDirectory(N, buf);
     ErrorCheck(val);
+}
+#pragma endregion
+
+#pragma region Files
+void TestFileCopy(int argc, TCHAR* argv[])
+{
+    if(argc > 2)
+        FileCopy(argv[1], argv[2]);
+    else
+        _tprintf(_T("%s"), PTCHAR(_T("Insufficient command line arguments.\n")));
+}
+
+void TestChangeFileTime(int argc, TCHAR* argv[])
+{
+    if(argc > 1)
+    {
+        if(ChangeFileTime(argv[1]))
+        {
+            HANDLE h = CreateFile(argv[1],
+                                  GENERIC_READ, 0,
+                                  NULL, OPEN_EXISTING,
+                                  0, NULL);
+            if(INVALID_HANDLE_VALUE == h)
+            {
+                PrintLastErrorText();
+                exit(-1);
+            }
+            BY_HANDLE_FILE_INFORMATION info;
+            if(!GetFileInformationByHandle(h, &info))
+            {
+                PrintLastErrorText();
+                exit(-1);
+            }
+            SYSTEMTIME st;
+            FileTimeToSystemTime(&info.ftCreationTime, &st);
+            _tprintf(_T("%d:%d:%d:%d\n"),
+                     (st.wHour + 4)%24, st.wMinute, st.wSecond, st.wMilliseconds);
+        }
+    }
+    else
+        _tprintf(_T("%s"), PTCHAR(_T("Insufficient command line arguments.\n")));
 }
 #pragma endregion
