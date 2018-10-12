@@ -14,15 +14,16 @@ void PrintLastErrorText()
                   NULL,
                   dw,
                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                             (LPTSTR)&lpMsgBuf,
-                             0, NULL);
+                  (LPTSTR)&lpMsgBuf,
+                  0, NULL);
 
     _tprintf(_T("%s"), (PTCHAR)lpMsgBuf);
     LocalFree(lpMsgBuf);
 }
 #pragma endregion
+
 #pragma region Files
-const int N = 100;
+const DWORD N = 100;
 
 //problem 1.3
 bool FileCopy(TCHAR* file1, TCHAR* file2)
@@ -56,8 +57,7 @@ bool FileCopy(TCHAR* file1, TCHAR* file2)
     DWORD Writen;
 
     while(ReadFile(h1, buffer,
-                   N * sizeof(TCHAR),
-                   &Read, NULL)
+                   N, &Read, NULL)
           && Read)
     {
         if(!WriteFile(h2, buffer, Read, &Writen, NULL)
@@ -77,6 +77,88 @@ bool FileCopy(TCHAR* file1, TCHAR* file2)
         return false;
     }
 
+    CloseHandle(h1);
+    CloseHandle(h2);
+    return true;
+}
+
+//problem 1.4
+bool FileReverseCopy(TCHAR* file1, TCHAR* file2)
+{
+    HANDLE h1 = CreateFile(file1,
+                           GENERIC_READ,
+                           0, NULL,
+                           OPEN_EXISTING,
+                           0, NULL);
+    if(INVALID_HANDLE_VALUE == h1)
+    {
+        PrintLastErrorText();
+        return false;
+    }
+
+    HANDLE h2 = CreateFile(file2,
+                           GENERIC_WRITE,
+                           0, NULL,
+                           CREATE_ALWAYS,
+                           FILE_ATTRIBUTE_NORMAL,
+                           NULL);
+    if(INVALID_HANDLE_VALUE == h2)
+    {
+        CloseHandle(h1);
+        PrintLastErrorText();
+        return false;
+    }
+
+    TCHAR buffer[N];
+    DWORD Read = N;
+    DWORD Writen;
+    DWORD CurrPtr = SetFilePointer(h1, 0, NULL, FILE_END);
+    DWORD ToRead = N;
+
+    while(CurrPtr)
+    {
+        if(CurrPtr < Read)
+            CurrPtr = SetFilePointer(h1, 0, NULL, FILE_BEGIN);
+        else
+            CurrPtr = SetFilePointer(h1, 0 - N, NULL, FILE_CURRENT);
+        if(INVALID_SET_FILE_POINTER == CurrPtr)
+        {
+            PrintLastErrorText();
+            CloseHandle(h1);
+            CloseHandle(h2);
+            return false;
+        }
+        if(!ReadFile(h1, buffer, ToRead, &Read, NULL))
+        {
+            PrintLastErrorText();
+            CloseHandle(h1);
+            CloseHandle(h2);
+            return false;
+        }
+        if(INVALID_SET_FILE_POINTER == SetFilePointer(h1, 0 - Read, NULL, FILE_CURRENT))
+        {
+            PrintLastErrorText();
+            CloseHandle(h1);
+            CloseHandle(h2);
+            return false;
+        }
+        int count = Read / sizeof(TCHAR);
+        for(int i = 0;  2 * i < count; i++)
+        {
+            TCHAR tmp = buffer[i];
+            buffer[i] = buffer[count - i - 1];
+            buffer[count - i - 1] = tmp;
+        }
+
+        if(!WriteFile(h2, buffer, Read, &Writen, NULL)
+           || Read != Writen)
+        {
+            PrintLastErrorText();
+            CloseHandle(h1);
+            CloseHandle(h2);
+            return false;
+        }
+    }
     CloseHandle(h1);
     CloseHandle(h2);
     return true;
@@ -144,10 +226,10 @@ bool CopyHandles(HANDLE h1, HANDLE h2)
 //problem 1.7
 bool FromFileToOutput(TCHAR* FileName)
 {
-    HANDLE h1 = CreateFile(FileName, 
-                           GENERIC_READ, 
-                           0, NULL, 
-                           OPEN_EXISTING, 
+    HANDLE h1 = CreateFile(FileName,
+                           GENERIC_READ,
+                           0, NULL,
+                           OPEN_EXISTING,
                            0, NULL);
     if(INVALID_HANDLE_VALUE == h1)
     {
@@ -172,19 +254,19 @@ bool FromFileToOutput(TCHAR* FileName)
 
 bool FromFileToConsole(TCHAR* FileName)
 {
-    HANDLE h1 = CreateFile(FileName, 
-                           GENERIC_READ, 
-                           0, NULL, 
-                           OPEN_EXISTING, 
+    HANDLE h1 = CreateFile(FileName,
+                           GENERIC_READ,
+                           0, NULL,
+                           OPEN_EXISTING,
                            0, NULL);
     if(INVALID_HANDLE_VALUE == h1)
     {
         PrintLastErrorText();
         return false;
     }
-    HANDLE h2 = CreateFile(_T("CONOUT$"), 
-                           GENERIC_WRITE, 
-                           0, NULL, 
+    HANDLE h2 = CreateFile(_T("CONOUT$"),
+                           GENERIC_WRITE,
+                           0, NULL,
                            OPEN_EXISTING,
                            0, NULL);
     if(INVALID_HANDLE_VALUE == h2)

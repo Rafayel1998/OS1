@@ -73,6 +73,14 @@ void TestFileCopy(int argc, TCHAR* argv[])
         _tprintf(_T("%s"), PTCHAR(_T("Insufficient command line arguments.\n")));
 }
 
+void TestFileReverseCopy(int argc, TCHAR* argv[])
+{
+    if(argc > 2)
+        FileReverseCopy(argv[1], argv[2]);
+    else
+        _tprintf(_T("%s"), PTCHAR(_T("Insufficient command line arguments.\n")));
+}
+
 void TestChangeFileTime(int argc, TCHAR* argv[])
 {
     if(argc > 1)

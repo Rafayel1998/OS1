@@ -7,6 +7,7 @@ void PrintLastErrorText();
 
 #pragma region Files
 bool FileCopy(TCHAR*, TCHAR*);
+bool FileReverseCopy(TCHAR*, TCHAR*);
 bool ChangeFileTime(TCHAR* file);
 bool FromFileToOutput(TCHAR*);
 bool FromFileToConsole(TCHAR*);
