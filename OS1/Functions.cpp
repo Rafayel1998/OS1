@@ -186,6 +186,7 @@ bool FileReverseCopy(TCHAR* file1, TCHAR* file2)
             return false;
         }
     }
+
     CloseHandle(h1);
     CloseHandle(h2);
     return true;
@@ -232,7 +233,7 @@ bool CopyHandles(HANDLE h1, HANDLE h2)
 {
     DWORD read = -1, write;
     TCHAR buffer[N];
-    while(ReadFile(h1, buffer, N * sizeof(TCHAR), &read, NULL) && read)
+    while(ReadFile(h1, buffer, N, &read, NULL) && read)
     {
         if(!WriteFile(h2, buffer, read, &write, NULL) || read != write)
         {
@@ -240,7 +241,7 @@ bool CopyHandles(HANDLE h1, HANDLE h2)
             return false;
         }
     }
-    if(read != 0)
+    if(read)
     {
         PrintLastErrorText();
         return false;
@@ -276,6 +277,57 @@ bool FromFileToOutput(TCHAR* FileName)
     return true;
 }
 
+bool FromInputToFile(TCHAR* FileName)
+{
+    HANDLE h1 = GetStdHandle(STD_INPUT_HANDLE);
+    if(INVALID_HANDLE_VALUE == h1)
+    {
+        PrintLastErrorText();
+        return false;
+    }
+
+    HANDLE h2 = CreateFile(FileName,
+                           GENERIC_WRITE,
+                           0, NULL,
+                           OPEN_ALWAYS,
+                           0, NULL);
+    if(INVALID_HANDLE_VALUE == h2)
+    {
+        PrintLastErrorText();
+        CloseHandle(h2);
+        return false;
+    }
+
+    if(!CopyHandles(h1, h2))
+    {
+        PrintLastErrorText();
+        CloseHandle(h2);
+    }
+    CloseHandle(h2);
+    return true;
+}
+
+bool FromInputToOutput()
+{
+    HANDLE h1 = GetStdHandle(STD_INPUT_HANDLE);
+    if(INVALID_HANDLE_VALUE == h1)
+    {
+        PrintLastErrorText();
+        return false;
+    }
+
+    HANDLE h2 = GetStdHandle(STD_OUTPUT_HANDLE);
+    if(INVALID_HANDLE_VALUE == h2)
+    {
+        PrintLastErrorText();
+        return false;
+    }
+
+    if(!CopyHandles(h1, h2))
+        PrintLastErrorText();
+    return true;
+}
+
 bool FromFileToConsole(TCHAR* FileName)
 {
     HANDLE h1 = CreateFile(FileName,
@@ -307,6 +359,65 @@ bool FromFileToConsole(TCHAR* FileName)
     }
     CloseHandle(h1);
     CloseHandle(h2);
+    return true;
+}
+
+bool FromASCIIToUnicode(TCHAR* ASCII, TCHAR* Unicode)
+{
+    HANDLE hASCII = CreateFile(ASCII,
+                               GENERIC_READ,
+                               0, NULL,
+                               OPEN_EXISTING,
+                               0, NULL);
+    if(INVALID_HANDLE_VALUE == hASCII)
+    {
+        PrintLastErrorText();
+        return false;
+    }
+
+    HANDLE hUnicode = CreateFile(Unicode,
+                                 GENERIC_WRITE,
+                                 0, NULL,
+                                 CREATE_ALWAYS,
+                                 FILE_ATTRIBUTE_NORMAL,
+                                 NULL);
+    if(INVALID_HANDLE_VALUE == hUnicode)
+    {
+        CloseHandle(hASCII);
+        PrintLastErrorText();
+        return false;
+    }
+
+    char buffer[N];
+    TCHAR buf[N];
+    DWORD Read;
+    DWORD Written;
+
+    while(ReadFile(hASCII, buffer,
+                   N, &Read, NULL)
+          && Read)
+    {
+        for(int i = 0; i < Read; i++)
+            buf[i] = (TCHAR)buffer[i];
+        if(!WriteFile(hUnicode, &buf, 2 * Read, &Written, NULL)
+           || 2 * Read != Written)
+        {
+            PrintLastErrorText();
+            CloseHandle(hASCII);
+            CloseHandle(hUnicode);
+            return false;
+        }
+    }
+    if(Read)
+    {
+        PrintLastErrorText();
+        CloseHandle(hASCII);
+        CloseHandle(hUnicode);
+        return false;
+    }
+
+    CloseHandle(hASCII);
+    CloseHandle(hUnicode);
     return true;
 }
 

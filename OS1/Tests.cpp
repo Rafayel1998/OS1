@@ -12,6 +12,11 @@ void TestPrintLastErrorText()
     SetLastError(39);
     PrintLastErrorText();
 }
+
+void TPrintLastErrorText()
+{
+    PrintLastErrorText();
+}
 #pragma endregion
 
 #pragma region Command line arguments, enviroment variables and current directory
@@ -192,6 +197,27 @@ void TestFromFileToConsole(int argc, TCHAR* argv[])
 {
     if(argc > 3)
         FromFileToConsole(argv[3]);
+    else
+        _tprintf(_T("%s"), _T("Insufficient command line arguments.\n"));
+}
+
+void TestFromInputToFile(int argc, TCHAR* argv[])
+{
+    if(argc >8)
+        FromInputToFile(argv[8]);
+    else
+        _tprintf(_T("%s"), _T("Insufficient command line arguments.\n"));
+}
+
+void TestFromInputToOutput()
+{
+    FromInputToOutput();
+}
+
+void TestFromASCIIToUnicode(int argc, TCHAR* argv[])
+{
+    if(argc > 10)
+        FromASCIIToUnicode(argv[9], argv[10]);
     else
         _tprintf(_T("%s"), _T("Insufficient command line arguments.\n"));
 }
