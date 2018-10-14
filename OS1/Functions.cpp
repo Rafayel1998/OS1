@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #pragma region ErrorHandling
-//problem 1.1
+
 void PrintLastErrorText()
 {
 
@@ -17,15 +17,15 @@ void PrintLastErrorText()
                   (LPTSTR)&lpMsgBuf,
                   0, NULL);
 
-    _tprintf(_T("%s"), (PTCHAR)lpMsgBuf);
+    _tprintf(_T("%s"), lpMsgBuf);
     LocalFree(lpMsgBuf);
 }
 #pragma endregion
 
 #pragma region Files
-const DWORD N = 100;
+const DWORD N = 64;
+const DWORD bigN = 1024;
 
-//problem 1.3
 bool FileCopy(TCHAR* file1, TCHAR* file2)
 {
     HANDLE h1 = CreateFile(file1,
@@ -54,14 +54,14 @@ bool FileCopy(TCHAR* file1, TCHAR* file2)
 
     TCHAR buffer[N];
     DWORD Read;
-    DWORD Writen;
+    DWORD Written;
 
     while(ReadFile(h1, buffer,
                    N, &Read, NULL)
           && Read)
     {
-        if(!WriteFile(h2, buffer, Read, &Writen, NULL)
-           || Read != Writen)
+        if(!WriteFile(h2, buffer, Read, &Written, NULL)
+           || Read != Written)
         {
             PrintLastErrorText();
             CloseHandle(h1);
@@ -82,7 +82,6 @@ bool FileCopy(TCHAR* file1, TCHAR* file2)
     return true;
 }
 
-//problem 1.4
 bool FileReverseCopy(TCHAR* file1, TCHAR* file2)
 {
     HANDLE h1 = CreateFile(file1,
@@ -97,7 +96,7 @@ bool FileReverseCopy(TCHAR* file1, TCHAR* file2)
     }
 
     HANDLE h2 = CreateFile(file2,
-                           GENERIC_WRITE,
+                           FILE_APPEND_DATA,
                            0, NULL,
                            CREATE_ALWAYS,
                            FILE_ATTRIBUTE_NORMAL,
@@ -111,10 +110,38 @@ bool FileReverseCopy(TCHAR* file1, TCHAR* file2)
 
     TCHAR buffer[N];
     DWORD Read = N;
-    DWORD Writen;
+    DWORD Written;
     DWORD CurrPtr = SetFilePointer(h1, 0, NULL, FILE_END);
     DWORD ToRead = N;
 
+    ///This doesn't work, but I don't know why.
+    ///Seems like SetFilePointer doesn't work proprly
+    /*while(ReadFile(h1, buffer, N, &Read, NULL) && Read)
+    {
+        int count = Read / sizeof(TCHAR);
+        for(int i = 0; 2 * i < count; i++)
+        {
+            TCHAR tmp = buffer[i];
+            buffer[i] = buffer[count - i - 1];
+            buffer[count - i - 1] = tmp;
+        }
+
+        if(INVALID_SET_FILE_POINTER == SetFilePointer(h2, 0, NULL, FILE_BEGIN))
+        {
+            PrintLastErrorText();
+            CloseHandle(h1);
+            CloseHandle(h2);
+            return false;
+        }
+        if(!WriteFile(h2, buffer, Read, &Written, NULL)
+           || Read != Written)
+        {
+            PrintLastErrorText();
+            CloseHandle(h1);
+            CloseHandle(h2);
+            return false;
+        }
+    }*/
     while(CurrPtr)
     {
         if(CurrPtr < Read)
@@ -143,15 +170,15 @@ bool FileReverseCopy(TCHAR* file1, TCHAR* file2)
             return false;
         }
         int count = Read / sizeof(TCHAR);
-        for(int i = 0;  2 * i < count; i++)
+        for(int i = 0; 2 * i < count; i++)
         {
             TCHAR tmp = buffer[i];
             buffer[i] = buffer[count - i - 1];
             buffer[count - i - 1] = tmp;
         }
 
-        if(!WriteFile(h2, buffer, Read, &Writen, NULL)
-           || Read != Writen)
+        if(!WriteFile(h2, buffer, Read, &Written, NULL)
+           || Read != Written)
         {
             PrintLastErrorText();
             CloseHandle(h1);
@@ -164,7 +191,6 @@ bool FileReverseCopy(TCHAR* file1, TCHAR* file2)
     return true;
 }
 
-//problem 1.14
 bool ChangeFileTime(TCHAR* file)
 {
     HANDLE h = CreateFile(file,
@@ -202,7 +228,6 @@ bool ChangeFileTime(TCHAR* file)
     return true;
 }
 
-//problem 1.10
 bool CopyHandles(HANDLE h1, HANDLE h2)
 {
     DWORD read = -1, write;
@@ -223,7 +248,6 @@ bool CopyHandles(HANDLE h1, HANDLE h2)
     return true;
 }
 
-//problem 1.7
 bool FromFileToOutput(TCHAR* FileName)
 {
     HANDLE h1 = CreateFile(FileName,
@@ -284,5 +308,50 @@ bool FromFileToConsole(TCHAR* FileName)
     CloseHandle(h1);
     CloseHandle(h2);
     return true;
+}
+
+bool envpFile(TCHAR* file, TCHAR** envp)
+{
+    if(file)
+    {
+        HANDLE h = CreateFile(file,
+                              GENERIC_WRITE,
+                              0, NULL,
+                              OPEN_ALWAYS,
+                              FILE_ATTRIBUTE_NORMAL,
+                              NULL);
+        if(INVALID_HANDLE_VALUE == h)
+        {
+            PrintLastErrorText();
+            CloseHandle(h);
+        }
+        DWORD Written;
+        while(*envp)
+        {
+            DWORD count = _tcslen(*envp);
+            if(!WriteFile(h, *envp, count, &Written, NULL)
+               || Written != count)
+            {
+                PrintLastErrorText();
+                CloseHandle(h);
+                return false;
+            }
+            if(!WriteFile(h, _T("\n"), sizeof(TCHAR), &Written, NULL)
+               || Written != sizeof(TCHAR))
+            {
+                PrintLastErrorText();
+                CloseHandle(h);
+                return false;
+            }
+            envp++;
+        }
+        CloseHandle(h);
+    }
+    else
+        while(*envp)
+        {
+            _tprintf(_T("%s\n"), *envp);
+            envp++;
+        }
 }
 #pragma endregion
