@@ -127,8 +127,8 @@ void TestFileCopy(int argc, TCHAR* argv[])
 
 void TestFileReverseCopy(int argc, TCHAR* argv[])
 {
-    if(argc > 2)
-        FileReverseCopy(argv[1], argv[2]);
+    if(argc > 11)
+        FileReverseCopy(argv[1], argv[11]);
     else
         _tprintf(_T("%s"), _T("Insufficient command line arguments.\n"));
 }
@@ -203,7 +203,7 @@ void TestFromFileToConsole(int argc, TCHAR* argv[])
 
 void TestFromInputToFile(int argc, TCHAR* argv[])
 {
-    if(argc >8)
+    if(argc > 8)
         FromInputToFile(argv[8]);
     else
         _tprintf(_T("%s"), _T("Insufficient command line arguments.\n"));

@@ -20,7 +20,7 @@ void TestFromFileToOutput(int, TCHAR*[]);           // problem 1.7
 void TestFromInputToFile(int, TCHAR*[]);            // problem 1.8
 void TestFromInputToOutput();                       // problem 1.9
 void TestFromFileToConsole(int, TCHAR*[]);          // problem 1.10
-void TestFromASCIIToUnicode(int, TCHAR*[]);                      // problem 1.11
+void TestFromASCIIToUnicode(int, TCHAR*[]);         // problem 1.11
 void TestenvpFile(int, TCHAR*[], TCHAR**);          // problem 1.12
 void TestChangeFileTime(int, TCHAR*[]);             // problem 1.14
 #pragma endregion
