@@ -16,4 +16,5 @@ bool FromFileToConsole(TCHAR*);             // problem 1.10
 bool FromASCIIToUnicode(TCHAR*, TCHAR*);    // problem 1.11
 bool envpFile(TCHAR*, TCHAR**);             // problrm 1.12
 bool ChangeFileTime(TCHAR*);                // problem 1.14
+bool FileToConsole(TCHAR*);                 // problem 1.17 
 #pragma endregion

@@ -225,13 +225,19 @@ void TestFromASCIIToUnicode(int argc, TCHAR* argv[])
 void TestenvpFile(int argc, TCHAR* argv[], TCHAR** envp)
 {
     if(argc > 7)
-    {
         envpFile(argv[7], envp);
-    }
     else
     {
         _tprintf(_T("%s\n"), _T("Insufficient command line arguments.\n"));
         envpFile(NULL, envp);
     }
+}
+
+void TestFileToConsole(int argc, TCHAR* argv[])
+{
+    if(argc > 12)
+        FileToConsole(argv[12]);
+    else
+        _tprintf(_T("%s\n"), _T("Insufficient command line arguments.\n"));
 }
 #pragma endregion

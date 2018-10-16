@@ -233,6 +233,7 @@ bool CopyHandles(HANDLE h1, HANDLE h2)
 {
     DWORD read = -1, write;
     TCHAR buffer[N];
+    SetFilePointer(h1, 0, NULL, FILE_BEGIN);
     while(ReadFile(h1, buffer, N, &read, NULL) && read)
     {
         if(!WriteFile(h2, buffer, read, &write, NULL) || read != write)
@@ -277,7 +278,7 @@ bool FromFileToOutput(TCHAR* FileName)
     return true;
 }
 
-bool FromInputToFile(TCHAR* FileName)
+bool FromInputToFile(TCHAR* file)
 {
     HANDLE h1 = GetStdHandle(STD_INPUT_HANDLE);
     if(INVALID_HANDLE_VALUE == h1)
@@ -286,7 +287,7 @@ bool FromInputToFile(TCHAR* FileName)
         return false;
     }
 
-    HANDLE h2 = CreateFile(FileName,
+    HANDLE h2 = CreateFile(file,
                            GENERIC_WRITE,
                            0, NULL,
                            OPEN_ALWAYS,
@@ -464,5 +465,37 @@ bool envpFile(TCHAR* file, TCHAR** envp)
             _tprintf(_T("%s\n"), *envp);
             envp++;
         }
+}
+
+bool FileToConsole(TCHAR* file)
+{
+    HANDLE h = CreateFile(file,
+                          GENERIC_READ,
+                          0, NULL,
+                          OPEN_EXISTING,
+                          0, NULL);
+    if(INVALID_HANDLE_VALUE == h)
+    {
+        CloseHandle(h);
+        PrintLastErrorText();
+        return false;
+    }
+    HANDLE hConsole = CreateFile(_T("CONOUT$"),
+                                 GENERIC_WRITE,
+                                 0, NULL,
+                                 OPEN_EXISTING,
+                                 0, NULL);
+    if(INVALID_HANDLE_VALUE == hConsole)
+    {
+        CloseHandle(h);
+        PrintLastErrorText();
+        return false;
+    }
+    
+    while(1)
+    {
+        CopyHandles(h, hConsole);
+        Sleep(512);
+    }
 }
 #pragma endregion

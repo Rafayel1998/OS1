@@ -23,4 +23,5 @@ void TestFromFileToConsole(int, TCHAR*[]);          // problem 1.10
 void TestFromASCIIToUnicode(int, TCHAR*[]);         // problem 1.11
 void TestenvpFile(int, TCHAR*[], TCHAR**);          // problem 1.12
 void TestChangeFileTime(int, TCHAR*[]);             // problem 1.14
+void TestFileToConsole(int, TCHAR*[]);              // problem 1.17
 #pragma endregion
